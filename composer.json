@@ -1,0 +1,25 @@
+{
+    "name": "kohl00/cohere-php-sdk",
+    "description": "A PHP SDK for the Cohere API",
+    "type": "project",
+    "require": {
+        "php": "^8.0",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^7.0",
+        "guzzlehttp/psr7": "^2",
+        "psr/log": "^1.1",
+        "http-interop/http-factory-guzzle": "^1.2",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cohere\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kohl Kohlbrenner",
+            "email": "edwin.kohlbrenner@gmail.com"
+        }
+    ]
+}
