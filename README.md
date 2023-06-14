@@ -22,5 +22,5 @@ $streamFactory = new StreamFactory();
 $config = new Config();
 $client = new Client($httpClient, $requestFactory, $streamFactory, $config);
 $res = $client->embed(['Hello','world!']);
-print_r($res)
+print_r($res);
 ```
