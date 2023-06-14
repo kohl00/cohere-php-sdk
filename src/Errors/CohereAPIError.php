@@ -1,16 +1,8 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace Cohere\Errors;
 
-use Exception;
-
-class CohereError extends Exception {
-    public function __toString(): string {
-        return $this->message;
-    }
-}
+use Cohere\Errors\CohereError;
 
 class CohereAPIError extends CohereError {
     private ?int $http_status = null;
@@ -26,5 +18,3 @@ class CohereAPIError extends CohereError {
         return new self($message ?? $response->getBody()->getContents(), $response->getStatusCode(), $response->getHeaders());
     }
 }
-
-class CohereConnectionError extends CohereError{}

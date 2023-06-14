@@ -10,9 +10,6 @@ RUN apt-get update && apt-get upgrade -y
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install extensions
-RUN docker-php-ext-install mbstring exif pcntl bcmath gd
-
 # Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

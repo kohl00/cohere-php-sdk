@@ -5,8 +5,10 @@ namespace Cohere;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Errors\{CohereError, CohereAPIError, CohereConnectionError};
 use Cohere\Config;
+use Cohere\Errors\CohereError;
+use Cohere\Errors\CohereConnectionError;
+use Cohere\Errors\CohereAPIError;
 /*
 Cohere Client.
 */
