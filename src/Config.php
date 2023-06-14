@@ -10,12 +10,16 @@ final class Config {
     private $apiVersion;
 
     public function __construct() {
-        $this->apiKey = $_ENV['COHERE_API_KEY'];
-        $this->apiBaseUrl = $_ENV['COHERE_BASE_URL'];
-        $this->apiVersion = $_ENV['COHERE_VERSION'];
-
-        if (!$this->apiKey || !$this->apiBaseUrl || !$this->apiVersion) {
-            throw new CohereConnectionError('Missing required environment variables. Please set COHERE_API_KEY, COHERE_BASE_URL, and COHERE_VERSION.');
+        try {
+            $this->apiKey = $_ENV['COHERE_API_KEY'];
+            $this->apiBaseUrl = $_ENV['COHERE_BASE_URL'];
+            $this->apiVersion = $_ENV['COHERE_VERSION'];
+                    
+            if (!$this->apiKey || !$this->apiBaseUrl || !$this->apiVersion) {
+                throw new CohereConnectionError('Missing required environment variables. Please set COHERE_API_KEY, COHERE_BASE_URL, and COHERE_VERSION.');
+            }
+        } catch (CohereConnectionError $e) {
+            echo "An error occurred: " . $e->getMessage();
         }
     }
 
