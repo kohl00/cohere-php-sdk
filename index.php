@@ -3,6 +3,7 @@
 require __DIR__ . '/vendor/autoload.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->required('COHERE_API_KEY')->notEmpty();
 $dotenv->load();
 use Http\Factory\Guzzle\RequestFactory;
 use Http\Factory\Guzzle\StreamFactory;

@@ -2,6 +2,8 @@ version: '3'
 services:
   web:
     build: .
+    env_file:
+      - .env
     container_name: php_web
     restart: always
     volumes:
