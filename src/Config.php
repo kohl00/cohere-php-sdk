@@ -2,7 +2,7 @@
 
 namespace Cohere;
 
-use Exception;
+use Cohere\Errors\CohereConnectionError;
 
 final class Config {
     private $apiKey;
@@ -15,7 +15,7 @@ final class Config {
         $this->apiVersion = $_ENV['COHERE_VERSION'];
 
         if (!$this->apiKey || !$this->apiBaseUrl || !$this->apiVersion) {
-            throw new Exception('Missing required environment variables. Please set COHERE_API_KEY, COHERE_BASE_URL, and COHERE_VERSION.');
+            throw new CohereConnectionError('Missing required environment variables. Please set COHERE_API_KEY, COHERE_BASE_URL, and COHERE_VERSION.');
         }
     }
 
