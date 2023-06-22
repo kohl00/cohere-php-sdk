@@ -21,5 +21,8 @@
             "name": "Kohl Kohlbrenner",
             "email": "edwin.kohlbrenner@gmail.com"
         }
-    ]
+    ],
+    "require-dev": {
+        "monolog/monolog": "^2.9"
+    }
 }
