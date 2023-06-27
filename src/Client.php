@@ -4,6 +4,7 @@ namespace Cohere;
 
 use Cohere\Config;
 use Cohere\Endpoints;
+use Cohere\Payload;
 use Cohere\Errors\{
     CohereAPIError,
     CohereConnectionError,
@@ -44,6 +45,8 @@ class Client {
     // Logger to log warnings and errors.
     private ?LoggerInterface $logger;
 
+    private Payload $payload;
+
     /**
      * Create a new Cohere client.
      *
@@ -51,6 +54,7 @@ class Client {
      * @param RequestFactoryInterface $requestFactory Factory for creating HTTP requests
      * @param StreamFactoryInterface $streamFactory Factory for creating HTTP streams
      * @param Config $config Config object storing the settings for the client
+     * @param Payload $payload Payload object storing the data to send in the request.
      * @param LoggerInterface|null $logger Logger to log warnings and errors
      */
     function __construct(
@@ -58,12 +62,14 @@ class Client {
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface $streamFactory,
         Config $config,
+        Payload $payload,
         ?LoggerInterface $logger = null
     ) {
         $this->client = $client;
         $this->config = $config;
         $this->requestFactory = $requestFactory;
         $this->logger = $logger;
+        $this->payload = $payload;
         $this->streamFactory = $streamFactory;
     }
 
@@ -96,10 +102,11 @@ class Client {
                 "Content-Type" => "application/json",
                 "Request-Source" => "php-sdk",
             ];
+
             foreach ($headers as $key => $value) {
                 $request = $request->withHeader($key, $value);
             }
-            
+
             $response = $this->client->sendRequest($request);
         } catch (NetworkExceptionInterface $e) {
             throw new CohereConnectionError($e->getMessage(), 0, $e);
@@ -112,6 +119,7 @@ class Client {
         if (json_last_error() != JSON_ERROR_NONE) {
             throw new CohereAPIError("Failed to decode JSON body: " . $bodyContents, 0);
         }        
+
         $this->checkResponse($json_response, $response->getHeaders(), $response->getStatusCode());
         return $json_response;
     }
@@ -211,8 +219,7 @@ class Client {
             "presence_penalty" => $presence_penalty
         ];
         
-        $json_body = $this->cleanPayload($json_body);
-
+        $json_body = $this->payload->setPayload($json_body)->getPayload(TRUE);
         return $this->request(Endpoints::GENERATE, $json_body, "POST");
     }
 
@@ -272,7 +279,7 @@ class Client {
             "stream" => $stream,
         ];
 
-        $json_body =$this->cleanPayload($json_body);
+        $json_body = $this->payload->setPayload($json_body)->getPayload(TRUE);
 
         return $this->request(Endpoints::CHAT, $json_body, "POST");
     }
@@ -316,7 +323,7 @@ class Client {
             "max_chunks_per_doc" => $max_chunks_per_doc,
         );
 
-        $json_body = $this->cleanPayload($json_body);
+        $json_body = $this->payload->setPayload($json_body)->getPayload(TRUE);
         $reranking = $this->request(Endpoints::RERANK, $json_body, "POST");
         $reranking = $this->rankedResults($reranking);
         foreach ($reranking as $index => $rank) {
@@ -383,6 +390,7 @@ class Client {
     
         $meta = null;
         foreach ($json_bodys as $json_body) {
+            $json_body = $this->payload->setPayload($json_body)->getPayload(TRUE);
             $result = $this->request(Endpoints::EMBED, $json_body, "POST");
             array_push($responses["embeddings"], ...$result["embeddings"]);
             if (isset($result["compressed_embeddings"])) {
@@ -430,11 +438,9 @@ class Client {
             "examples" => $examples_dicts,
             "truncate" => $truncate,
         ];
-
-        $json_body = $this->cleanPayload($json_body);
-
-        $response = $this->request(Endpoints::CLASSIFY, $json_body, "POST");
     
+        $json_body = $this->payload->setPayload($json_body)->getPayload(TRUE);
+        $response = $this->request(Endpoints::CLASSIFY, $json_body, "POST");
         $classifications = [];
         foreach ($response["classifications"] as $res) {
             $labelObj = [];
@@ -488,8 +494,7 @@ class Client {
             "extractiveness" => $extractiveness,
         ];
 
-        $json_body = $this->cleanPayload($json_body);
-
+        $json_body = $this->payload->setPayload($json_body)->getPayload(TRUE);
         $response = $this->request(Endpoints::SUMMARIZE, $json_body, "POST");
 
         $summarizeResponse = [
