@@ -223,12 +223,6 @@ class Client {
         return $this->request(Endpoints::GENERATE, $json_body, "POST");
     }
 
-    protected function cleanPayload(array &$payload): array {
-        return array_filter($payload, function($value) {
-            return !is_null($value);
-        });
-    }
-
     /**
      * Makes a chat request to the Cohere API and returns the response.
      *
@@ -373,32 +367,12 @@ class Client {
             "embeddings" => [],
             "compressed_embeddings" => [],
         ];
-
-        $json_bodys = [];
     
-        for ($i = 0; $i < count($texts); $i += self::BATCH_SIZE) {
-            $texts_batch = array_slice($texts, $i, $i + self::BATCH_SIZE);
-            array_push($json_bodys, [
-                "model" => $model,
-                "texts" => $texts_batch,
-                "truncate" => $truncate,
-                "compress" => $compress,
-                "compression_codebook" => $compression_codebook,
-            ]);
-        }
-       $json_bodys = $this->cleanPayload($json_bodys);
-    
+        $json_bodys = $this->createBatches($texts, $model, $truncate, $compress, $compression_codebook);
+        
         $meta = null;
         foreach ($json_bodys as $json_body) {
-            $json_body = $this->payload->setPayload($json_body)->getPayload(TRUE);
-            $result = $this->request(Endpoints::EMBED, $json_body, "POST");
-            array_push($responses["embeddings"], ...$result["embeddings"]);
-            if (isset($result["compressed_embeddings"])) {
-                array_push($responses["compressed_embeddings"], ...$result["compressed_embeddings"]);
-            }
-            if (!$meta) {
-                $meta = $result["meta"];
-            }
+            $this->processBatch($json_body, $responses, $meta);
         }
     
         return [
@@ -406,6 +380,34 @@ class Client {
             "compressed_embeddings" => $responses["compressed_embeddings"],
             "meta" => $meta
         ];
+    }
+    
+    private function createBatches(array $texts, ?string $model, ?string $truncate, ?bool $compress, ?string $compression_codebook): array {
+        return array_map(function($texts_batch) use ($model, $truncate, $compress, $compression_codebook) {
+            return [
+                "model" => $model,
+                "texts" => $texts_batch,
+                "truncate" => $truncate,
+                "compress" => $compress,
+                "compression_codebook" => $compression_codebook,
+            ];
+        }, array_chunk($texts, self::BATCH_SIZE));
+    }
+    
+    private function processBatch(array $json_body, array &$responses, &$meta): void {
+        $result = $this->request(Endpoints::EMBED, $json_body, "POST");
+        
+        if (isset($result["embeddings"])) {
+            array_push($responses["embeddings"], ...$result["embeddings"]);
+        }
+    
+        if (isset($result["compressed_embeddings"])) {
+            array_push($responses["compressed_embeddings"], ...$result["compressed_embeddings"]);
+        }
+    
+        if (!$meta && isset($result["meta"])) {
+            $meta = $result["meta"];
+        }
     }
 
     /**
